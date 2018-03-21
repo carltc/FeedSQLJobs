@@ -90,6 +90,7 @@ namespace FeedSQLJobs
 
             using (SqlConnection sqlConnection1 = new SqlConnection(connectionString))
             {
+                sqlConnection1.Open();
                 SqlCommand cmd = new SqlCommand();
                 cmd.CommandText = "EXECUTE [dbo].[" + sqlStoredProcedure + "] ;";
                 cmd.CommandType = CommandType.Text;
