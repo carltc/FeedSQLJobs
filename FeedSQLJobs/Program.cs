@@ -29,41 +29,42 @@ namespace FeedSQLJobs
             string connectionString;
             try
             {
-                connectionString = ConfigurationManager.ConnectionStrings["FeedMeDataBaseConnectionString"].ConnectionString;
+                connectionString = ConfigurationManager.ConnectionStrings["feedWebAppUser"].ConnectionString;
             }
             catch
             {
-                try
-                {
-                    connectionString = ConfigurationManager.ConnectionStrings["LocalFeedMeDataBaseConnectionString"].ConnectionString;
-                }
-                catch
-                {
-                    Console.WriteLine("Connection string error...probs.");
-                    return;
-                }
+                Console.WriteLine("Connection string error...probs.");
+                return;
             }
-            SqlConnection sqlConnection1 = new SqlConnection(connectionString);
-            SqlCommand cmd = new SqlCommand();
-            cmd.CommandText = sqlQuery; // "EXECUTE [dbo].[CloseHourOldMeals] ;";
-            cmd.CommandType = CommandType.Text;
-            cmd.Connection = sqlConnection1;
 
-            sqlConnection1.Open();
-
-            using (SqlDataReader reader = cmd.ExecuteReader())
+            try
             {
-                // Data is accessible through the DataReader object here.
-                while (reader.Read())
+                SqlConnection sqlConnection1 = new SqlConnection(connectionString);
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = sqlQuery; // "EXECUTE [dbo].[CloseHourOldMeals] ;";
+                cmd.CommandType = CommandType.Text;
+                cmd.Connection = sqlConnection1;
+
+                sqlConnection1.Open();
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    for (int i = 0; i < reader.FieldCount; i++)
+                    // Data is accessible through the DataReader object here.
+                    while (reader.Read())
                     {
-                        Console.WriteLine(reader.GetValue(i).ToString());
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            Console.WriteLine(reader.GetValue(i).ToString());
+                        }
                     }
+                    reader.Close();
                 }
-                reader.Close();
+                sqlConnection1.Close();
             }
-            sqlConnection1.Close();
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: " + e.ToString());
+            }
         }
 
         static int RunSQLStoredProcedure(string sqlStoredProcedure)
@@ -73,34 +74,36 @@ namespace FeedSQLJobs
             string connectionString;
             try
             {
-                connectionString = ConfigurationManager.ConnectionStrings["FeedMeDataBaseConnectionString"].ConnectionString;
+                connectionString = ConfigurationManager.ConnectionStrings["feedWebAppUser"].ConnectionString;
             }
-            catch
+            catch (Exception e)
             {
-                try
-                {
-                    connectionString = ConfigurationManager.ConnectionStrings["LocalFeedMeDataBaseConnectionString"].ConnectionString;
-                }
-                catch
-                {
-                    Console.WriteLine("Connection string error...probs.");
-                    return result;
-                }
+                Console.WriteLine("Connection string error...probs.");
+                Console.WriteLine(e.ToString());
+                return result;
             }
 
             using (SqlConnection sqlConnection1 = new SqlConnection(connectionString))
             {
-                sqlConnection1.Open();
-                SqlCommand cmd = new SqlCommand();
-                cmd.CommandText = "EXECUTE [dbo].[" + sqlStoredProcedure + "] ;";
-                cmd.CommandType = CommandType.Text;
-                cmd.Connection = sqlConnection1;
-                result = cmd.ExecuteNonQuery();
-                sqlConnection1.Close();
-
-                if (result > 0)
+                try
                 {
-                    Console.WriteLine("Rows affected by '" + sqlStoredProcedure + "': " + result.ToString() + ".");
+                
+                    sqlConnection1.Open();
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.CommandText = "EXECUTE [dbo].[" + sqlStoredProcedure + "] ;";
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Connection = sqlConnection1;
+                    result = cmd.ExecuteNonQuery();
+                    sqlConnection1.Close();
+
+                    if (result > 0)
+                    {
+                        Console.WriteLine("Rows affected by '" + sqlStoredProcedure + "': " + result.ToString() + ".");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error: " + e.ToString());
                 }
             }
             return result;
